@@ -24,7 +24,7 @@ Leitura Nº: 5
 Temperatura: 20.20
 Humidade: 85.00
  
-httpRequestData: api_key=tPmAT5Aporpejdttt55734b3j7F9&sensor=DHT11-01&location=Sitio&value1=20.20&value2=85.00&value3= 
+httpRequestData: api_key=xxxxxxxxxxxxxx&sensor=DHT11-01&location=Sitio&value1=20.20&value2=85.00&value3= 
 HTTP Response code: 200
 
 No servidor:
@@ -47,9 +47,11 @@ TODO:
   String sensorLocation = "localizacaoDoSensor";
   <---- Final do arquivo
 
-- Sincronizar o projeto com o GitHub: alexandreberg/Esp32_Temerature_Humidity_Monitor_with_DHT11_BMExxx
+- OK Criado e sincronizado - 02.09.2023 - Sincronizar o projeto com o GitHub: alexandreberg/Esp32_Temerature_Humidity_Monitor_with_DHT11_BMExxx
 https://github.com/alexandreberg/Esp32_Temerature_Humidity_Monitor_with_DHT11_BMExxx.git
+- OK Corrigido - 02.09.2023 - Alterar api_key no arquivo post-esp-data.php do servidor e do credentials
 
+TODOs PENDENTES:
 - corrigir prob de não ler os dado do sensores:
   ID	Sensor	Location	Value 1	Value 2	Value 3	Timestamp
   39100	DHT11-01	Sitio	nan	nan		2023-08-30 01:05:13
@@ -120,7 +122,7 @@ void setup() {
   Serial.println("");
   Serial.println("");
   Serial.println("Monitor de Temperatura e Humidade com ESP32 e DHT11");
-  Serial.println("Versao: 2023090201a");
+  Serial.println("Versao: 2023090201b");
   Serial.println("");
   Serial.println("");
   
