@@ -52,6 +52,8 @@ https://github.com/alexandreberg/Esp32_Temerature_Humidity_Monitor_with_DHT11_BM
 - OK Corrigido - 02.09.2023 - Alterar api_key no arquivo post-esp-data.php do servidor e do credentials
 
 TODOs PENDENTES:
+- 09.09.2023 - Está em testes ... => corrigir o problema de desconexão do WiFi
+
 - corrigir prob de não ler os dado do sensores:
   ID	Sensor	Location	Value 1	Value 2	Value 3	Timestamp
   39100	DHT11-01	Sitio	nan	nan		2023-08-30 01:05:13
@@ -71,6 +73,7 @@ else{
 }
 
 - 08 nov 2025: adjusting new apikey
+
 */
 
 //Choose your sensor type: SensorDHT for DHT11 or SensorBME for BME280
@@ -118,6 +121,31 @@ float Humidity;
 int i=1;
 #endif
 
+void restartESP32() {
+  Serial.println("Restarting ESP32...");
+  delay(10000);  // Give some time for serial output to be sent
+
+  // Perform the restart using the ESP.restart() function
+  ESP.restart();
+}
+
+void leituraDHT() { 
+  //Leitura do DHT:
+  Temperature = dht.readTemperature(); 
+  Humidity = dht.readHumidity(); 
+  /*if (Humidity < 0 || Humidity > 101) {
+    dht.begin(); //start DHT sensor again
+    delay(5000);
+    Temperature = dht.readTemperature(); 
+    Humidity = dht.readHumidity(); 
+  }*/
+  Serial.print("Leitura Nº: "); Serial.println(i);
+  Serial.print("Temperatura: "); Serial.println(Temperature);
+  Serial.print("Humidade: "); Serial.println(Humidity);
+  Serial.println(" ");
+  i ++;
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.println("");
@@ -155,24 +183,27 @@ void setup() {
 
 void loop() {
   #ifdef SensorDHT
-  //Leitura do DHT:
-  Temperature = dht.readTemperature(); 
-  Humidity = dht.readHumidity(); 
-  if (Humidity < 0 || Humidity > 101) {
-    dht.begin(); //start DHT sensor again
-    delay(5000);
-  }
-  Serial.print("Leitura Nº: "); Serial.println(i);
-  Serial.print("Temperatura: "); Serial.println(Temperature);
-  Serial.print("Humidade: "); Serial.println(Humidity);
-  Serial.println(" ");
-  i ++;
+  leituraDHT();
   #endif
 
-
   //Check WiFi connection status
-  if(WiFi.status()== WL_CONNECTED){
-    WiFiClientSecure *client = new WiFiClientSecure;
+  if(WiFi.status()!= WL_CONNECTED) {
+    Serial.println("WiFi Disconnected, trying to reconnect...");
+    WiFi.begin(ssid, password);
+    Serial.println("Reconnecting to WiFi...");
+    while(WiFi.status() != WL_CONNECTED) { 
+      delay(500);
+      Serial.print(".");
+    }
+    Serial.println("");
+    Serial.print("Connected to WiFi network with IP Address: ");
+    Serial.println(WiFi.localIP());
+    //Testando o comando ESP.restart():
+    //restartESP32(); // restard esp32 board    
+  }
+
+  else {
+   WiFiClientSecure *client = new WiFiClientSecure;
     client->setInsecure(); //don't use SSL certificate
     HTTPClient https;
     
@@ -187,13 +218,30 @@ void loop() {
     String httpRequestData = "api_key=" + apiKeyValue + "&sensor=" + sensorName
                           + "&location=" + sensorLocation + "&value1=" + String(dht.readTemperature())
                           + "&value2=" + String(dht.readHumidity()) + "&value3=" + String(" ") + "";
+                         // + "&location=" + sensorLocation + "&value1=" + String(bme.readTemperature())
+                         // + "&value2=" + String(bme.readHumidity()) + "&value3=" + String(bme.readPressure()/100.0F) + "";
                           
     Serial.print("httpRequestData: ");
     Serial.println(httpRequestData);
+
+    // You can comment the httpRequestData variable above
+    // then, use the httpRequestData variable below (for testing purposes without the BME280 sensor)
+    //Testing the connection with the webserver and MySQL server:
+    //String httpRequestData = "api_key=xxxxxxxxxxxxxxxxxxxxx&sensor=DHT11-01&location=TESTE&value1=24.75&value2=49.54&value3=1005.14";
+    //String httpRequestData = "api_key=xxxxxxxxxxxxxxxxxxxxx&sensor=Teste001&location=TESTE&value1=999999&value2=999999&value3=999999";
     
+
     // Send HTTP POST request
     int httpResponseCode = https.POST(httpRequestData);
      
+    // If you need an HTTP request with a content type: text/plain
+    //https.addHeader("Content-Type", "text/plain");
+    //int httpResponseCode = https.POST("Hello, World!");
+    
+    // If you need an HTTP request with a content type: application/json, use the following:
+    //https.addHeader("Content-Type", "application/json");
+    //int httpResponseCode = https.POST("{\"value1\":\"19\",\"value2\":\"67\",\"value3\":\"78\"}");
+    
     if (httpResponseCode>0) {
       Serial.print("HTTP Response code: ");
       Serial.println(httpResponseCode);
@@ -201,13 +249,14 @@ void loop() {
     else {
       Serial.print("Error code: ");
       Serial.println(httpResponseCode);
+      if (httpResponseCode == -1) {
+        restartESP32(); //If there is error -1 restart esp32
+      }
     }
     // Free resources
     https.end();
   }
-  else {
-    Serial.println("WiFi Disconnected");
-  }
-  //Send an HTTP POST request every 5 min
-  delay(60000 * 5);  
+  //Send an HTTP POST request every 5 minutes
+  delay(300000);  //5min
+
 }
