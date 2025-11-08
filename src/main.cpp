@@ -70,6 +70,7 @@ else{
   Serial.println(bTemperature);
 }
 
+- 08 nov 2025: adjusting new apikey
 */
 
 //Choose your sensor type: SensorDHT for DHT11 or SensorBME for BME280
@@ -122,7 +123,7 @@ void setup() {
   Serial.println("");
   Serial.println("");
   Serial.println("Monitor de Temperatura e Humidade com ESP32 e DHT11");
-  Serial.println("Versao: 2023090201b");
+  Serial.println("Versao: 2025110801");
   Serial.println("");
   Serial.println("");
   
@@ -186,29 +187,13 @@ void loop() {
     String httpRequestData = "api_key=" + apiKeyValue + "&sensor=" + sensorName
                           + "&location=" + sensorLocation + "&value1=" + String(dht.readTemperature())
                           + "&value2=" + String(dht.readHumidity()) + "&value3=" + String(" ") + "";
-                         // + "&location=" + sensorLocation + "&value1=" + String(bme.readTemperature())
-                         // + "&value2=" + String(bme.readHumidity()) + "&value3=" + String(bme.readPressure()/100.0F) + "";
                           
     Serial.print("httpRequestData: ");
     Serial.println(httpRequestData);
     
-    // You can comment the httpRequestData variable above
-    // then, use the httpRequestData variable below (for testing purposes without the BME280 sensor)
-    //Testing the connection with the webserver and MySQL server:
-    //String httpRequestData = "api_key=tPmAT5Aporpejdttt55734b3j7F9&sensor=DHT11-01&location=TESTE&value1=24.75&value2=49.54&value3=1005.14";
-    
-
     // Send HTTP POST request
     int httpResponseCode = https.POST(httpRequestData);
      
-    // If you need an HTTP request with a content type: text/plain
-    //https.addHeader("Content-Type", "text/plain");
-    //int httpResponseCode = https.POST("Hello, World!");
-    
-    // If you need an HTTP request with a content type: application/json, use the following:
-    //https.addHeader("Content-Type", "application/json");
-    //int httpResponseCode = https.POST("{\"value1\":\"19\",\"value2\":\"67\",\"value3\":\"78\"}");
-    
     if (httpResponseCode>0) {
       Serial.print("HTTP Response code: ");
       Serial.println(httpResponseCode);
